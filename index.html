@@ -1,0 +1,2344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCCIU Case Management Dashboard</title>
+    <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #a8d5ba 0%, #c5e1a5 100%);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2d5016;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #4a6741;
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .green-bg { background: #a8d5ba; }
+        .lilac-bg { background: #d4c5e0; }
+        .pink-bg { background: #f4c4d0; }
+        .blue-bg { background: #b3d9f2; }
+        .yellow-bg { background: #fff4b3; }
+        .peach-bg { background: #ffd4b3; }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            color: #7f8c8d;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .ai-insights {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0e8f8 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .ai-insights h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .insight-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .insight-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .insight-type {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .insight-text {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .alert { border-left-color: #e74c3c; }
+        .warning { border-left-color: #f39c12; }
+        .success { border-left-color: #27ae60; }
+        .info { border-left-color: #3498db; }
+
+        .data-input {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .team-performance {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .investigator-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        }
+
+        .investigator-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .investigator-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .stat-small {
+            text-align: center;
+        }
+
+        .stat-small .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .stat-small .label {
+            font-size: 11px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
+        .ai-chat {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .chat-messages {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .message {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            max-width: 85%;
+        }
+
+        .user-message {
+            background: #d4c5e0;
+            margin-left: auto;
+            color: #2c3e50;
+        }
+
+        .ai-message {
+            background: #a8d5ba;
+            color: #2d5016;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .chat-input input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-on-track {
+            background: #d5f4e6;
+            color: #0f7d47;
+        }
+
+        .status-attention {
+            background: #fff4cc;
+            color: #9c6500;
+        }
+
+        .status-critical {
+            background: #ffe5e5;
+            color: #c13030;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const FCCIUDashboard = () => {
+            // State management
+            const [piData, setPiData] = useState({
+                openingBalance: 0,
+                newPI: 0,
+                completedPI: 0,
+                setAside: 0,
+                piToFI: 0,
+                targetCompletion: 75,
+                closingBalance: 0
+            });
+
+            const [fiData, setFiData] = useState({
+                openingBalance: 0,
+                newPI: 0,
+                completedPI: 0,
+                prosecution: 0,
+                nfa: 0,
+                targetCompletion: 75,
+                closingBalance: 0
+            });
+
+            const [teamData, setTeamData] = useState([
+                { 
+                    name: 'Investigator 1', 
+                    piOpeningBalance: 0, 
+                    piNewCases: 0, 
+                    piSetAside: 0,
+                    piToFI: 0,
+                    piCompleted: 0,
+                    piClosingBalance: 0,
+                    piTotalInvestigated: 0,
+                    fiOpeningBalance: 0, 
+                    fiNewCases: 0, 
+                    fiProsecution: 0,
+                    fiNFA: 0,
+                    fiActiveCasesLD: 0,
+                    fiCompleted: 0,
+                    fiClosingBalance: 0,
+                    fiTotalInvestigated: 0,
+                    totalCaseload: 0,
+                    efficiency: 0
+                },
+                { 
+                    name: 'Investigator 2', 
+                    piOpeningBalance: 0, 
+                    piNewCases: 0, 
+                    piSetAside: 0,
+                    piToFI: 0,
+                    piCompleted: 0,
+                    piClosingBalance: 0,
+                    piTotalInvestigated: 0,
+                    fiOpeningBalance: 0, 
+                    fiNewCases: 0, 
+                    fiProsecution: 0,
+                    fiNFA: 0,
+                    fiActiveCasesLD: 0,
+                    fiCompleted: 0,
+                    fiClosingBalance: 0,
+                    fiTotalInvestigated: 0,
+                    totalCaseload: 0,
+                    efficiency: 0
+                },
+                { 
+                    name: 'Investigator 3', 
+                    piOpeningBalance: 0, 
+                    piNewCases: 0, 
+                    piSetAside: 0,
+                    piToFI: 0,
+                    piCompleted: 0,
+                    piClosingBalance: 0,
+                    piTotalInvestigated: 0,
+                    fiOpeningBalance: 0, 
+                    fiNewCases: 0, 
+                    fiProsecution: 0,
+                    fiNFA: 0,
+                    fiActiveCasesLD: 0,
+                    fiCompleted: 0,
+                    fiClosingBalance: 0,
+                    fiTotalInvestigated: 0,
+                    totalCaseload: 0,
+                    efficiency: 0
+                },
+                { 
+                    name: 'Investigator 4', 
+                    piOpeningBalance: 0, 
+                    piNewCases: 0, 
+                    piSetAside: 0,
+                    piToFI: 0,
+                    piCompleted: 0,
+                    piClosingBalance: 0,
+                    piTotalInvestigated: 0,
+                    fiOpeningBalance: 0, 
+                    fiNewCases: 0, 
+                    fiProsecution: 0,
+                    fiNFA: 0,
+                    fiActiveCasesLD: 0,
+                    fiCompleted: 0,
+                    fiClosingBalance: 0,
+                    fiTotalInvestigated: 0,
+                    totalCaseload: 0,
+                    efficiency: 0
+                },
+                { 
+                    name: 'Investigator 5', 
+                    piOpeningBalance: 0, 
+                    piNewCases: 0, 
+                    piSetAside: 0,
+                    piToFI: 0,
+                    piCompleted: 0,
+                    piClosingBalance: 0,
+                    piTotalInvestigated: 0,
+                    fiOpeningBalance: 0, 
+                    fiNewCases: 0, 
+                    fiProsecution: 0,
+                    fiNFA: 0,
+                    fiActiveCasesLD: 0,
+                    fiCompleted: 0,
+                    fiClosingBalance: 0,
+                    fiTotalInvestigated: 0,
+                    totalCaseload: 0,
+                    efficiency: 0
+                }
+            ]);
+
+            const [insights, setInsights] = useState([]);
+            const [chatMessages, setChatMessages] = useState([]);
+            const [chatInput, setChatInput] = useState('');
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
+            const [lastSaved, setLastSaved] = useState(null);
+            const [reportPeriod, setReportPeriod] = useState('');
+
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            // Auto-save functionality - improved version
+            useEffect(() => {
+                const saveData = () => {
+                    const dataToSave = {
+                        piData,
+                        fiData,
+                        teamData,
+                        timestamp: new Date().toISOString()
+                    };
+                    try {
+                        localStorage.setItem('fcciu_dashboard_data', JSON.stringify(dataToSave));
+                        setLastSaved(new Date());
+                        console.log('Data auto-saved at:', new Date().toLocaleTimeString());
+                    } catch (e) {
+                        console.error('Error saving data:', e);
+                    }
+                };
+
+                // Save on any data change with debounce
+                const timer = setTimeout(() => {
+                    saveData();
+                }, 2000); // Auto-save 2 seconds after last change
+
+                return () => clearTimeout(timer);
+            }, [JSON.stringify(piData), JSON.stringify(fiData), JSON.stringify(teamData)]);
+
+            // Load saved data on mount
+            useEffect(() => {
+                const savedData = localStorage.getItem('fcciu_dashboard_data');
+                if (savedData) {
+                    try {
+                        const parsed = JSON.parse(savedData);
+                        setPiData(parsed.piData);
+                        setFiData(parsed.fiData);
+                        setTeamData(parsed.teamData);
+                        setLastSaved(new Date(parsed.timestamp));
+                    } catch (e) {
+                        console.error('Error loading saved data:', e);
+                    }
+                }
+            }, []);
+
+            // Calculate metrics
+            useEffect(() => {
+                calculateMetrics();
+                generateInsights();
+                updateChart();
+            }, [piData, fiData, teamData]);
+
+            const calculateMetrics = () => {
+                // Calculate team PI totals from individual investigators
+                const teamPIOpeningBalance = teamData.reduce((sum, inv) => sum + inv.piOpeningBalance, 0);
+                const teamPINewCases = teamData.reduce((sum, inv) => sum + inv.piNewCases, 0);
+                const teamPISetAside = teamData.reduce((sum, inv) => sum + inv.piSetAside, 0);
+                const teamPIToFI = teamData.reduce((sum, inv) => sum + inv.piToFI, 0);
+                
+                // Calculate team FI totals from individual investigators
+                const teamFIOpeningBalance = teamData.reduce((sum, inv) => sum + inv.fiOpeningBalance, 0);
+                const teamFINewCases = teamData.reduce((sum, inv) => sum + inv.fiNewCases, 0);
+                const teamFIProsecution = teamData.reduce((sum, inv) => sum + inv.fiProsecution, 0);
+                const teamFINFA = teamData.reduce((sum, inv) => sum + inv.fiNFA, 0);
+                
+                // Update PI data with team totals
+                setPiData(prev => ({
+                    ...prev,
+                    openingBalance: teamPIOpeningBalance,
+                    newPI: teamPINewCases,
+                    setAside: teamPISetAside,
+                    piToFI: teamPIToFI,
+                    completedPI: teamPISetAside + teamPIToFI,
+                    closingBalance: teamPIOpeningBalance + teamPINewCases - (teamPISetAside + teamPIToFI)
+                }));
+                
+                // Update FI data with team totals
+                setFiData(prev => ({
+                    ...prev,
+                    openingBalance: teamFIOpeningBalance,
+                    newPI: teamFINewCases,
+                    prosecution: teamFIProsecution,
+                    nfa: teamFINFA,
+                    completedPI: teamFIProsecution + teamFINFA,
+                    closingBalance: teamFIOpeningBalance + teamFINewCases - (teamFIProsecution + teamFINFA)
+                }));
+            };
+
+            const generateInsights = () => {
+                const newInsights = [];
+
+                // PI Analysis
+                const piProgress = piData.completedPI > 0 ? 
+                    (piData.completedPI / (piData.openingBalance + piData.newPI)) * 100 : 0;
+                const piGap = piData.targetCompletion - piProgress;
+
+                if (piGap > 20) {
+                    newInsights.push({
+                        type: 'alert',
+                        title: 'Critical: PI Target Gap',
+                        text: `Preliminary investigations are ${piGap.toFixed(1)}% behind target. Current completion rate: ${piProgress.toFixed(1)}%. Recommend immediate resource allocation review.`
+                    });
+                } else if (piGap > 10) {
+                    newInsights.push({
+                        type: 'warning',
+                        title: 'Warning: PI Performance',
+                        text: `PI completion is ${piGap.toFixed(1)}% below target. Consider workflow optimization or temporary resource reallocation.`
+                    });
+                } else if (piProgress >= piData.targetCompletion) {
+                    newInsights.push({
+                        type: 'success',
+                        title: 'Excellent: PI On Track',
+                        text: `Preliminary investigations exceeding target at ${piProgress.toFixed(1)}%. Team demonstrating strong performance.`
+                    });
+                }
+
+                // FI Analysis
+                const fiProgress = fiData.completedPI > 0 ? 
+                    (fiData.completedPI / (fiData.openingBalance + fiData.newPI)) * 100 : 0;
+                const fiGap = fiData.targetCompletion - fiProgress;
+
+                if (fiGap > 20) {
+                    newInsights.push({
+                        type: 'alert',
+                        title: 'Critical: FI Target Gap',
+                        text: `Further investigations ${fiGap.toFixed(1)}% behind target. High-value cases may be delayed. Urgent intervention needed.`
+                    });
+                } else if (fiGap > 10) {
+                    newInsights.push({
+                        type: 'warning',
+                        title: 'Warning: FI Performance',
+                        text: `FI completion ${fiGap.toFixed(1)}% below target. Review case complexity and resource adequacy.`
+                    });
+                }
+
+                // Conversion Rate Analysis
+                const conversionRate = piData.completedPI > 0 ? 
+                    (piData.piToFI / piData.completedPI) * 100 : 0;
+
+                if (conversionRate > 60) {
+                    newInsights.push({
+                        type: 'warning',
+                        title: 'High PI-to-FI Conversion',
+                        text: `${conversionRate.toFixed(1)}% of completed PIs advancing to FI. This may indicate either strong case quality or insufficient preliminary filtering. Review PI criteria.`
+                    });
+                } else if (conversionRate < 30) {
+                    newInsights.push({
+                        type: 'info',
+                        title: 'Low PI-to-FI Conversion',
+                        text: `Only ${conversionRate.toFixed(1)}% of PIs advancing to FI. Effective preliminary screening reducing unnecessary full investigations.`
+                    });
+                }
+
+                // Prosecution Rate
+                const prosecutionRate = fiData.completedPI > 0 ? 
+                    (fiData.prosecution / fiData.completedPI) * 100 : 0;
+
+                if (prosecutionRate > 70) {
+                    newInsights.push({
+                        type: 'success',
+                        title: 'Strong Prosecution Rate',
+                        text: `${prosecutionRate.toFixed(1)}% of completed FIs leading to prosecution. High-quality investigation outcomes.`
+                    });
+                } else if (prosecutionRate < 40) {
+                    newInsights.push({
+                        type: 'warning',
+                        title: 'Low Prosecution Rate',
+                        text: `Only ${prosecutionRate.toFixed(1)}% prosecution rate. May indicate evidence challenges or case selection issues.`
+                    });
+                }
+
+                // Workload Analysis
+                const totalCaseload = piData.closingBalance + fiData.closingBalance;
+                const avgCaseload = totalCaseload / teamData.length;
+
+                if (avgCaseload > 20) {
+                    newInsights.push({
+                        type: 'alert',
+                        title: 'High Team Workload',
+                        text: `Average ${avgCaseload.toFixed(0)} cases per investigator. Risk of investigation delays and quality issues. Consider case prioritization or additional resources.`
+                    });
+                }
+
+                // Team Performance Variance
+                const efficiencies = teamData.map(t => t.efficiency).filter(e => e > 0);
+                if (efficiencies.length > 0) {
+                    const avgEfficiency = efficiencies.reduce((a, b) => a + b, 0) / efficiencies.length;
+                    const maxEfficiency = Math.max(...efficiencies);
+                    const minEfficiency = Math.min(...efficiencies);
+
+                    if (maxEfficiency - minEfficiency > 30) {
+                        newInsights.push({
+                            type: 'info',
+                            title: 'Performance Variance Detected',
+                            text: `Significant efficiency variance (${minEfficiency.toFixed(0)}% - ${maxEfficiency.toFixed(0)}%). Consider workload rebalancing or training needs assessment.`
+                        });
+                    }
+                }
+
+                // Individual Caseload Analysis
+                const caseloads = teamData.map(t => t.totalCaseload);
+                const maxCaseload = Math.max(...caseloads);
+                const minCaseload = Math.min(...caseloads);
+                const avgTeamCaseload = caseloads.reduce((a, b) => a + b, 0) / caseloads.length;
+
+                if (maxCaseload - minCaseload > 10) {
+                    const overloaded = teamData.filter(t => t.totalCaseload > avgTeamCaseload + 5);
+                    const underloaded = teamData.filter(t => t.totalCaseload < avgTeamCaseload - 5);
+                    
+                    if (overloaded.length > 0 || underloaded.length > 0) {
+                        newInsights.push({
+                            type: 'warning',
+                            title: 'Unbalanced Caseload Distribution',
+                            text: `Caseload variance detected (${minCaseload} - ${maxCaseload} cases). ${overloaded.length > 0 ? overloaded.map(t => t.name).join(', ') + ' showing high caseload.' : ''} Consider case redistribution for optimal team efficiency.`
+                        });
+                    }
+                }
+
+                teamData.forEach(investigator => {
+                    if (investigator.totalCaseload > 25) {
+                        newInsights.push({
+                            type: 'alert',
+                            title: `Critical Caseload: ${investigator.name}`,
+                            text: `${investigator.name} has ${investigator.totalCaseload} active cases (PI: ${investigator.piClosingBalance}, FI: ${investigator.fiClosingBalance}) - significantly above recommended maximum. Immediate action required to prevent case quality deterioration.`
+                        });
+                    }
+                    
+                    // Analyze PI completion patterns
+                    if (investigator.piCompleted > 0) {
+                        const piToFIRate = (investigator.piToFI / investigator.piCompleted) * 100;
+                        if (piToFIRate > 70) {
+                            newInsights.push({
+                                type: 'info',
+                                title: `High PI→FI Rate: ${investigator.name}`,
+                                text: `${investigator.name} advancing ${piToFIRate.toFixed(0)}% of completed PIs to FI (${investigator.piToFI} of ${investigator.piCompleted}). This may indicate complex caseload or thorough preliminary assessment.`
+                            });
+                        }
+                    }
+                    
+                    // Analyze FI completion patterns
+                    if (investigator.fiCompleted > 0) {
+                        const prosecutionRate = (investigator.fiProsecution / investigator.fiCompleted) * 100;
+                        if (prosecutionRate > 75) {
+                            newInsights.push({
+                                type: 'success',
+                                title: `High Prosecution Rate: ${investigator.name}`,
+                                text: `${investigator.name} achieving ${prosecutionRate.toFixed(0)}% prosecution rate (${investigator.fiProsecution} of ${investigator.fiCompleted} FI). Excellent case quality and evidence gathering.`
+                            });
+                        } else if (prosecutionRate < 30) {
+                            newInsights.push({
+                                type: 'warning',
+                                title: `Low Prosecution Rate: ${investigator.name}`,
+                                text: `${investigator.name} has ${prosecutionRate.toFixed(0)}% prosecution rate (${investigator.fiProsecution} of ${investigator.fiCompleted} FI). Review case selection criteria or evidence collection processes.`
+                            });
+                        }
+                    }
+                });
+
+                setInsights(newInsights);
+            };
+
+            const updateChart = () => {
+                if (!chartRef.current) return;
+
+                if (chartInstance.current) {
+                    chartInstance.current.destroy();
+                }
+
+                const ctx = chartRef.current.getContext('2d');
+                chartInstance.current = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['PI Opening', 'PI New', 'PI Completed', 'PI Closing', 'FI Opening', 'FI New', 'FI Completed', 'FI Closing'],
+                        datasets: [{
+                            label: 'Case Volume',
+                            data: [
+                                piData.openingBalance,
+                                piData.newPI,
+                                piData.completedPI,
+                                piData.closingBalance,
+                                fiData.openingBalance,
+                                fiData.newPI,
+                                fiData.completedPI,
+                                fiData.closingBalance
+                            ],
+                            backgroundColor: [
+                                '#a8d5ba',
+                                '#c5e1a5',
+                                '#81c784',
+                                '#66bb6a',
+                                '#d4c5e0',
+                                '#ce93d8',
+                                '#ba68c8',
+                                '#ab47bc'
+                            ],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            const handlePIChange = (field, value) => {
+                setPiData(prev => {
+                    const updated = {
+                        ...prev,
+                        [field]: parseFloat(value) || 0
+                    };
+                    // Auto-calculate Completed PI = Set Aside + PI to FI
+                    updated.completedPI = updated.setAside + updated.piToFI;
+                    return updated;
+                });
+            };
+
+            const handleFIChange = (field, value) => {
+                setFiData(prev => {
+                    const updated = {
+                        ...prev,
+                        [field]: parseFloat(value) || 0
+                    };
+                    // Auto-calculate Completed FI = Prosecution + NFA
+                    updated.completedPI = updated.prosecution + updated.nfa;
+                    return updated;
+                });
+            };
+
+            const handleTeamChange = (index, field, value) => {
+                const newTeamData = [...teamData];
+                newTeamData[index][field] = field === 'name' ? value : (parseFloat(value) || 0);
+                
+                if (field !== 'name') {
+                    // Auto-calculate PI Completed = Set Aside + PI to FI
+                    newTeamData[index].piCompleted = newTeamData[index].piSetAside + newTeamData[index].piToFI;
+                    
+                    // Auto-calculate FI Completed = Prosecution + NFA
+                    newTeamData[index].fiCompleted = newTeamData[index].fiProsecution + newTeamData[index].fiNFA;
+                    
+                    // Calculate PI Total Investigated = Opening Balance + New Cases
+                    newTeamData[index].piTotalInvestigated = newTeamData[index].piOpeningBalance + newTeamData[index].piNewCases;
+                    
+                    // Calculate FI Total Investigated = Opening Balance + New Cases
+                    newTeamData[index].fiTotalInvestigated = newTeamData[index].fiOpeningBalance + newTeamData[index].fiNewCases;
+                    
+                    // Calculate PI closing balance: opening + new - completed
+                    newTeamData[index].piClosingBalance = newTeamData[index].piOpeningBalance + 
+                                                           newTeamData[index].piNewCases - 
+                                                           newTeamData[index].piCompleted;
+                    
+                    // Calculate FI closing balance: opening + new - completed
+                    newTeamData[index].fiClosingBalance = newTeamData[index].fiOpeningBalance + 
+                                                           newTeamData[index].fiNewCases - 
+                                                           newTeamData[index].fiCompleted;
+                    
+                    // Calculate total current caseload
+                    newTeamData[index].totalCaseload = newTeamData[index].piClosingBalance + 
+                                                        newTeamData[index].fiClosingBalance;
+                    
+                    // Calculate efficiency (weighted: FI cases are worth more, prosecution worth even more)
+                    const total = newTeamData[index].piCompleted + newTeamData[index].fiCompleted;
+                    const weightedScore = newTeamData[index].piCompleted + 
+                                         (newTeamData[index].fiNFA * 1.3) + 
+                                         (newTeamData[index].fiProsecution * 1.8);
+                    newTeamData[index].efficiency = total > 0 ? 
+                        (weightedScore / (total * 1.8)) * 100 : 0;
+                }
+                
+                setTeamData(newTeamData);
+            };
+
+            const handleChat = async () => {
+                if (!chatInput.trim()) return;
+
+                const userMessage = chatInput;
+                setChatMessages(prev => [...prev, { type: 'user', text: userMessage }]);
+                setChatInput('');
+                setIsAnalyzing(true);
+
+                // Simulate AI analysis
+                setTimeout(() => {
+                    const piProgress = piData.completedPI > 0 ? 
+                        (piData.completedPI / (piData.openingBalance + piData.newPI)) * 100 : 0;
+                    const fiProgress = fiData.completedPI > 0 ? 
+                        (fiData.completedPI / (fiData.openingBalance + fiData.newPI)) * 100 : 0;
+
+                    let response = '';
+
+                    if (userMessage.toLowerCase().includes('summary') || userMessage.toLowerCase().includes('overview')) {
+                        response = `Based on current data: PI completion rate is ${piProgress.toFixed(1)}% (target: ${piData.targetCompletion}%), with ${piData.closingBalance} cases pending. FI completion rate is ${fiProgress.toFixed(1)}% (target: ${fiData.targetCompletion}%), with ${fiData.closingBalance} cases pending. Total team workload: ${piData.closingBalance + fiData.closingBalance} cases across ${teamData.length} investigators.`;
+                    } else if (userMessage.toLowerCase().includes('recommend') || userMessage.toLowerCase().includes('suggest')) {
+                        const piGap = piData.targetCompletion - piProgress;
+                        const fiGap = fiData.targetCompletion - fiProgress;
+                        
+                        if (piGap > fiGap) {
+                            response = `Recommendation: Focus on PI completion - currently ${piGap.toFixed(1)}% behind target. Consider: 1) Streamlining preliminary assessment criteria, 2) Allocating 2-3 days per week specifically for PI closures, 3) Implementing batch processing for similar case types. This should improve throughput by 20-30%.`;
+                        } else if (fiGap > 10) {
+                            response = `Recommendation: FI cases need attention (${fiGap.toFixed(1)}% gap). Strategies: 1) Prioritize high-value cases, 2) Identify cases suitable for early NFA decisions, 3) Enhance inter-agency cooperation for faster evidence collection. Monitor weekly progress.`;
+                        } else {
+                            response = `Current performance is strong. Maintain momentum by: 1) Regular case reviews to prevent backlog, 2) Cross-training team members, 3) Documenting best practices from recent successes.`;
+                        }
+                    } else if (userMessage.toLowerCase().includes('risk') || userMessage.toLowerCase().includes('concern')) {
+                        const totalCaseload = piData.closingBalance + fiData.closingBalance;
+                        const avgCaseload = totalCaseload / teamData.length;
+                        
+                        response = `Risk Assessment: Average caseload is ${avgCaseload.toFixed(1)} cases per investigator. ${avgCaseload > 20 ? 'HIGH RISK: Potential for quality degradation and delays. Immediate action needed.' : avgCaseload > 15 ? 'MODERATE RISK: Monitor closely for signs of strain.' : 'LOW RISK: Manageable workload levels.'} Key monitoring points: case age analysis, conviction rates, and investigator feedback.`;
+                    } else {
+                        response = `I can help analyze investigation performance. Try asking about: "Give me a summary", "What do you recommend?", "What are the risks?", or specific questions about PI/FI completion rates, team performance, or case progression.`;
+                    }
+
+                    setChatMessages(prev => [...prev, { type: 'ai', text: response }]);
+                    setIsAnalyzing(false);
+                }, 1500);
+            };
+
+            const generateTeamReport = () => {
+                const reportDate = new Date().toLocaleDateString('en-GB', { 
+                    day: '2-digit', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+
+                const piProgress = piData.completedPI > 0 ? 
+                    (piData.completedPI / (piData.openingBalance + piData.newPI)) * 100 : 0;
+                const fiProgress = fiData.completedPI > 0 ? 
+                    (fiData.completedPI / (fiData.openingBalance + fiData.newPI)) * 100 : 0;
+
+                const totalCaseload = piData.closingBalance + fiData.closingBalance;
+                const avgCaseload = totalCaseload / teamData.length;
+
+                const piConversionRate = piData.completedPI > 0 ? 
+                    (piData.piToFI / piData.completedPI) * 100 : 0;
+                const prosecutionRate = fiData.completedPI > 0 ? 
+                    (fiData.prosecution / fiData.completedPI) * 100 : 0;
+
+                let html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FCCIU Team Performance Report - ${reportDate}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #27ae60; padding-bottom: 20px; }
+        .header h1 { color: #2c3e50; margin-bottom: 5px; }
+        .header p { color: #7f8c8d; }
+        .period { text-align: center; background: #f8f9fa; padding: 10px; margin-bottom: 30px; border-radius: 5px; }
+        .section { margin-bottom: 30px; }
+        .section h2 { color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 10px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0; }
+        .metric-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .metric-box .value { font-size: 32px; font-weight: bold; color: #3498db; }
+        .metric-box .label { color: #7f8c8d; font-size: 14px; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #27ae60; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ecf0f1; }
+        tr:hover { background: #f8f9fa; }
+        .status-good { color: #27ae60; font-weight: bold; }
+        .status-warning { color: #f39c12; font-weight: bold; }
+        .status-critical { color: #e74c3c; font-weight: bold; }
+        .insight { background: #e8f4f8; padding: 15px; margin: 10px 0; border-left: 4px solid #3498db; border-radius: 5px; }
+        .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 2px solid #ecf0f1; color: #7f8c8d; font-size: 12px; }
+        @media print { body { margin: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Financial Crimes Commission</h1>
+        <h2>Case Management Dashboard - Team Performance Report</h2>
+        <p>Financial Crimes Investigation Unit (FCCIU)</p>
+    </div>
+
+    <div class="period">
+        <strong>Report Period:</strong> ${reportPeriod || 'Current Period'} | <strong>Report Date:</strong> ${reportDate}
+    </div>
+
+    <div class="section">
+        <h2>Executive Summary</h2>
+        <div class="metrics-grid">
+            <div class="metric-box">
+                <div class="value">${piProgress.toFixed(1)}%</div>
+                <div class="label">PI Completion Rate</div>
+            </div>
+            <div class="metric-box">
+                <div class="value">${fiProgress.toFixed(1)}%</div>
+                <div class="label">FI Completion Rate</div>
+            </div>
+            <div class="metric-box">
+                <div class="value">${totalCaseload}</div>
+                <div class="label">Active Caseload</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Preliminary Investigation (PI) Performance</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>Opening Balance</td>
+                <td>${piData.openingBalance}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>New Cases Received</td>
+                <td>${piData.newPI}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cases Completed</td>
+                <td>${piData.completedPI}</td>
+                <td>${piProgress >= piData.targetCompletion ? '<span class="status-good">On Track</span>' : 
+                    piProgress >= piData.targetCompletion - 10 ? '<span class="status-warning">Attention Needed</span>' : 
+                    '<span class="status-critical">Critical</span>'}</td>
+            </tr>
+            <tr>
+                <td>&nbsp;&nbsp;&nbsp;Set Aside</td>
+                <td>${piData.setAside}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>&nbsp;&nbsp;&nbsp;Advanced to FI</td>
+                <td>${piData.piToFI}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Closing Balance</td>
+                <td>${piData.closingBalance}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Target Completion Rate</td>
+                <td>${piData.targetCompletion}%</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Actual Completion Rate</td>
+                <td>${piProgress.toFixed(1)}%</td>
+                <td>${piProgress >= piData.targetCompletion ? '<span class="status-good">✓ Target Met</span>' : 
+                    '<span class="status-critical">✗ Below Target</span>'}</td>
+            </tr>
+            <tr>
+                <td>PI to FI Conversion Rate</td>
+                <td>${piConversionRate.toFixed(1)}%</td>
+                <td>-</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Further Investigation (FI) Performance</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>Opening Balance</td>
+                <td>${fiData.openingBalance}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>New Cases Received</td>
+                <td>${fiData.newPI}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Cases Completed</td>
+                <td>${fiData.completedPI}</td>
+                <td>${fiProgress >= fiData.targetCompletion ? '<span class="status-good">On Track</span>' : 
+                    fiProgress >= fiData.targetCompletion - 10 ? '<span class="status-warning">Attention Needed</span>' : 
+                    '<span class="status-critical">Critical</span>'}</td>
+            </tr>
+            <tr>
+                <td>&nbsp;&nbsp;&nbsp;Referred for Prosecution</td>
+                <td>${fiData.prosecution}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>&nbsp;&nbsp;&nbsp;No Further Action</td>
+                <td>${fiData.nfa}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Closing Balance</td>
+                <td>${fiData.closingBalance}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Target Completion Rate</td>
+                <td>${fiData.targetCompletion}%</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Actual Completion Rate</td>
+                <td>${fiProgress.toFixed(1)}%</td>
+                <td>${fiProgress >= fiData.targetCompletion ? '<span class="status-good">✓ Target Met</span>' : 
+                    '<span class="status-critical">✗ Below Target</span>'}</td>
+            </tr>
+            <tr>
+                <td>Prosecution Rate</td>
+                <td>${prosecutionRate.toFixed(1)}%</td>
+                <td>${prosecutionRate >= 60 ? '<span class="status-good">Strong</span>' : 
+                    prosecutionRate >= 40 ? '<span class="status-warning">Moderate</span>' : 
+                    '<span class="status-critical">Needs Improvement</span>'}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Team Performance Summary</h2>
+        <table>
+            <tr>
+                <th>Investigator</th>
+                <th>PI Caseload</th>
+                <th>FI Caseload</th>
+                <th>Active Caseload</th>
+                <th>PI Completed</th>
+                <th>FI Completed</th>
+                <th>Efficiency</th>
+            </tr>
+            ${teamData.map(inv => `
+            <tr>
+                <td><strong>${inv.name}</strong></td>
+                <td>${inv.piClosingBalance}</td>
+                <td>${inv.fiClosingBalance}</td>
+                <td class="${inv.totalCaseload > 20 ? 'status-critical' : inv.totalCaseload > 15 ? 'status-warning' : 'status-good'}">${inv.totalCaseload}</td>
+                <td>${inv.piCompleted}</td>
+                <td>${inv.fiCompleted}</td>
+                <td>${inv.efficiency.toFixed(0)}%</td>
+            </tr>
+            `).join('')}
+            <tr style="background: #f8f9fa; font-weight: bold;">
+                <td>TEAM TOTAL</td>
+                <td>${teamData.reduce((sum, inv) => sum + inv.piClosingBalance, 0)}</td>
+                <td>${teamData.reduce((sum, inv) => sum + inv.fiClosingBalance, 0)}</td>
+                <td>${totalCaseload}</td>
+                <td>${teamData.reduce((sum, inv) => sum + inv.piCompleted, 0)}</td>
+                <td>${teamData.reduce((sum, inv) => sum + inv.fiCompleted, 0)}</td>
+                <td>${(teamData.reduce((sum, inv) => sum + inv.efficiency, 0) / teamData.length).toFixed(0)}%</td>
+            </tr>
+        </table>
+        <p><strong>Average Caseload per Investigator:</strong> ${avgCaseload.toFixed(1)} cases</p>
+    </div>
+
+    <div class="section">
+        <h2>Key Insights & Recommendations</h2>
+        ${insights.length > 0 ? insights.map(insight => `
+            <div class="insight">
+                <strong>${insight.title}</strong>
+                <p>${insight.text}</p>
+            </div>
+        `).join('') : '<p>No critical insights at this time. Performance is within normal parameters.</p>'}
+    </div>
+
+    <div class="footer">
+        <p>Financial Crimes Investigation Unit | Financial Crimes Commission | Republic of Mauritius</p>
+        <p>Report Generated: ${reportDate} | Confidential - For Management Use Only</p>
+    </div>
+</body>
+</html>
+                `;
+
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `FCCIU_Team_Report_${new Date().toISOString().split('T')[0]}.html`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const generateIndividualReport = (investigator) => {
+                const reportDate = new Date().toLocaleDateString('en-GB', { 
+                    day: '2-digit', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+
+                const piConversionRate = investigator.piCompleted > 0 ? 
+                    (investigator.piToFI / investigator.piCompleted) * 100 : 0;
+                const prosecutionRate = investigator.fiCompleted > 0 ? 
+                    (investigator.fiProsecution / investigator.fiCompleted) * 100 : 0;
+
+                let html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Individual Performance Report - ${investigator.name} - ${reportDate}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #3498db; padding-bottom: 20px; }
+        .header h1 { color: #2c3e50; margin-bottom: 5px; }
+        .header h2 { color: #3498db; margin-top: 10px; }
+        .header p { color: #7f8c8d; }
+        .period { text-align: center; background: #f8f9fa; padding: 10px; margin-bottom: 30px; border-radius: 5px; }
+        .section { margin-bottom: 30px; }
+        .section h2 { color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0; }
+        .metric-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border: 2px solid #ecf0f1; }
+        .metric-box .value { font-size: 32px; font-weight: bold; color: #3498db; }
+        .metric-box .label { color: #7f8c8d; font-size: 14px; margin-top: 5px; }
+        .metric-box.highlight { border-color: #3498db; background: #e8f4f8; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #3498db; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ecf0f1; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .status-good { color: #27ae60; font-weight: bold; }
+        .status-warning { color: #f39c12; font-weight: bold; }
+        .status-critical { color: #e74c3c; font-weight: bold; }
+        .breakdown { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .breakdown h4 { color: #2c3e50; margin-bottom: 10px; }
+        .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 2px solid #ecf0f1; color: #7f8c8d; font-size: 12px; }
+        @media print { body { margin: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Financial Crimes Commission</h1>
+        <h2>Individual Performance Report</h2>
+        <h3>${investigator.name}</h3>
+        <p>Financial Crimes Investigation Unit (FCCIU)</p>
+    </div>
+
+    <div class="period">
+        <strong>Report Period:</strong> ${reportPeriod || 'Current Period'} | <strong>Report Date:</strong> ${reportDate}
+    </div>
+
+    <div class="section">
+        <h2>Performance Overview</h2>
+        <div class="metrics-grid">
+            <div class="metric-box highlight">
+                <div class="value">${investigator.totalCaseload}</div>
+                <div class="label">Current Caseload</div>
+            </div>
+            <div class="metric-box">
+                <div class="value">${investigator.piCompleted + investigator.fiCompleted}</div>
+                <div class="label">Total Cases Completed</div>
+            </div>
+            <div class="metric-box">
+                <div class="value">${investigator.efficiency.toFixed(0)}%</div>
+                <div class="label">Efficiency Score</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Preliminary Investigation (PI) Performance</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Opening Balance</td>
+                <td>${investigator.piOpeningBalance}</td>
+            </tr>
+            <tr>
+                <td>New PI Cases Assigned</td>
+                <td>${investigator.piNewCases}</td>
+            </tr>
+            <tr style="background: #d5f4e6;">
+                <td><strong>Total PI Investigated (During Period)</strong></td>
+                <td><strong>${investigator.piTotalInvestigated}</strong></td>
+            </tr>
+            <tr>
+                <td>Total PI Cases Completed</td>
+                <td><strong>${investigator.piCompleted}</strong></td>
+            </tr>
+            <tr>
+                <td>Closing Balance (Active PI)</td>
+                <td class="${investigator.piClosingBalance > 15 ? 'status-warning' : 'status-good'}">${investigator.piClosingBalance}</td>
+            </tr>
+        </table>
+
+        <div class="breakdown">
+            <h4>PI Completion Breakdown</h4>
+            <table>
+                <tr>
+                    <td><strong>Set Aside</strong></td>
+                    <td>${investigator.piSetAside}</td>
+                    <td>${investigator.piCompleted > 0 ? ((investigator.piSetAside / investigator.piCompleted) * 100).toFixed(1) : 0}%</td>
+                </tr>
+                <tr>
+                    <td><strong>Advanced to FI</strong></td>
+                    <td>${investigator.piToFI}</td>
+                    <td>${piConversionRate.toFixed(1)}%</td>
+                </tr>
+            </table>
+            <p><strong>PI to FI Conversion Rate:</strong> ${piConversionRate.toFixed(1)}% - 
+            ${piConversionRate > 70 ? '<span class="status-warning">High conversion rate may indicate complex caseload</span>' : 
+              piConversionRate > 40 ? '<span class="status-good">Balanced conversion rate</span>' : 
+              '<span class="status-good">Effective preliminary screening</span>'}</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Further Investigation (FI) Performance</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Opening Balance</td>
+                <td>${investigator.fiOpeningBalance}</td>
+            </tr>
+            <tr>
+                <td>New FI Cases Assigned</td>
+                <td>${investigator.fiNewCases}</td>
+            </tr>
+            <tr style="background: #e8d5f4;">
+                <td><strong>Total FI Investigated (During Period)</strong></td>
+                <td><strong>${investigator.fiTotalInvestigated}</strong></td>
+            </tr>
+            <tr>
+                <td>Total FI Cases Completed</td>
+                <td><strong>${investigator.fiCompleted}</strong></td>
+            </tr>
+            <tr>
+                <td>Closing Balance (Active FI)</td>
+                <td class="${investigator.fiClosingBalance > 10 ? 'status-warning' : 'status-good'}">${investigator.fiClosingBalance}</td>
+            </tr>
+        </table>
+
+        <div class="breakdown">
+            <h4>FI Completion Breakdown</h4>
+            <table>
+                <tr>
+                    <td><strong>Referred for Prosecution</strong></td>
+                    <td>${investigator.fiProsecution}</td>
+                    <td>${prosecutionRate.toFixed(1)}%</td>
+                </tr>
+                <tr>
+                    <td><strong>No Further Action (NFA)</strong></td>
+                    <td>${investigator.fiNFA}</td>
+                    <td>${investigator.fiCompleted > 0 ? ((investigator.fiNFA / investigator.fiCompleted) * 100).toFixed(1) : 0}%</td>
+                </tr>
+            </table>
+            <p><strong>Prosecution Rate:</strong> ${prosecutionRate.toFixed(1)}% - 
+            ${prosecutionRate > 75 ? '<span class="status-good">Excellent case quality and evidence gathering</span>' : 
+              prosecutionRate > 50 ? '<span class="status-good">Good prosecution outcomes</span>' : 
+              prosecutionRate > 30 ? '<span class="status-warning">Review case selection or evidence collection</span>' :
+              '<span class="status-critical">Low prosecution rate requires attention</span>'}</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Workload Assessment</h2>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Current Status</th>
+                <th>Assessment</th>
+            </tr>
+            <tr>
+                <td>PI Caseload</td>
+                <td>${investigator.piClosingBalance}</td>
+                <td class="${investigator.piClosingBalance > 15 ? 'status-critical' : investigator.piClosingBalance > 10 ? 'status-warning' : 'status-good'}">
+                    ${investigator.piClosingBalance > 15 ? 'High - Consider Redistribution' : 
+                      investigator.piClosingBalance > 10 ? 'Moderate - Monitor Closely' : 
+                      'Manageable'}
+                </td>
+            </tr>
+            <tr>
+                <td>FI Caseload</td>
+                <td>${investigator.fiClosingBalance}</td>
+                <td class="${investigator.fiClosingBalance > 10 ? 'status-critical' : investigator.fiClosingBalance > 7 ? 'status-warning' : 'status-good'}">
+                    ${investigator.fiClosingBalance > 10 ? 'High - Requires Attention' : 
+                      investigator.fiClosingBalance > 7 ? 'Moderate - Monitor Progress' : 
+                      'Manageable'}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Active Caseload</strong></td>
+                <td><strong>${investigator.totalCaseload}</strong></td>
+                <td class="${investigator.totalCaseload > 20 ? 'status-critical' : investigator.totalCaseload > 15 ? 'status-warning' : 'status-good'}">
+                    ${investigator.totalCaseload > 20 ? 'Critical - Immediate Action Required' : 
+                      investigator.totalCaseload > 15 ? 'Above Optimal - Monitor Closely' : 
+                      'Within Optimal Range'}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Performance Summary</h2>
+        <p><strong>Efficiency Score:</strong> ${investigator.efficiency.toFixed(0)}%</p>
+        <p><strong>Cases Completed:</strong> ${investigator.piCompleted} PI + ${investigator.fiCompleted} FI = ${investigator.piCompleted + investigator.fiCompleted} Total</p>
+        <p><strong>Current Workload Status:</strong> 
+            ${investigator.totalCaseload > 20 ? '<span class="status-critical">CRITICAL - Overloaded. Immediate intervention required to prevent case quality issues and investigator burnout.</span>' : 
+              investigator.totalCaseload > 15 ? '<span class="status-warning">ATTENTION - Above optimal capacity. Monitor for signs of strain and consider case prioritization.</span>' : 
+              '<span class="status-good">HEALTHY - Workload within manageable parameters. Continue current pace.</span>'}
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>Financial Crimes Investigation Unit | Financial Crimes Commission | Republic of Mauritius</p>
+        <p>Report Generated: ${reportDate} | Confidential - For Management Use Only</p>
+    </div>
+</body>
+</html>
+                `;
+
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `FCCIU_${investigator.name.replace(/\s+/g, '_')}_Report_${new Date().toISOString().split('T')[0]}.html`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const getStatusBadge = (progress, target) => {
+                const gap = target - progress;
+                if (gap > 15) return { text: 'Critical', className: 'status-critical' };
+                if (gap > 5) return { text: 'Attention', className: 'status-attention' };
+                return { text: 'On Track', className: 'status-on-track' };
+            };
+
+            const manualSave = () => {
+                const dataToSave = {
+                    piData,
+                    fiData,
+                    teamData,
+                    timestamp: new Date().toISOString()
+                };
+                try {
+                    localStorage.setItem('fcciu_dashboard_data', JSON.stringify(dataToSave));
+                    setLastSaved(new Date());
+                    alert('✓ Data saved successfully!');
+                } catch (e) {
+                    alert('✗ Error saving data: ' + e.message);
+                }
+            };
+
+            const clearAllData = () => {
+                if (confirm('⚠️ Are you sure you want to clear all data? This cannot be undone.')) {
+                    localStorage.removeItem('fcciu_dashboard_data');
+                    window.location.reload();
+                }
+            };
+
+            const addInvestigator = () => {
+                const newInvestigator = {
+                    name: `Investigator ${teamData.length + 1}`,
+                    piOpeningBalance: 0,
+                    piNewCases: 0,
+                    piSetAside: 0,
+                    piToFI: 0,
+                    piCompleted: 0,
+                    piClosingBalance: 0,
+                    piTotalInvestigated: 0,
+                    fiOpeningBalance: 0,
+                    fiNewCases: 0,
+                    fiProsecution: 0,
+                    fiNFA: 0,
+                    fiActiveCasesLD: 0,
+                    fiCompleted: 0,
+                    fiClosingBalance: 0,
+                    fiTotalInvestigated: 0,
+                    totalCaseload: 0,
+                    efficiency: 0
+                };
+                setTeamData([...teamData, newInvestigator]);
+            };
+
+            const removeInvestigator = (index) => {
+                if (teamData.length <= 1) {
+                    alert('⚠️ Cannot remove the last investigator. You must have at least one team member.');
+                    return;
+                }
+                
+                const investigatorName = teamData[index].name;
+                if (confirm(`⚠️ Are you sure you want to remove ${investigatorName}? This cannot be undone.`)) {
+                    const newTeamData = teamData.filter((_, i) => i !== index);
+                    setTeamData(newTeamData);
+                }
+            };
+
+            const piProgress = piData.completedPI > 0 ? 
+                (piData.completedPI / (piData.openingBalance + piData.newPI)) * 100 : 0;
+            const fiProgress = fiData.completedPI > 0 ? 
+                (fiData.completedPI / (fiData.openingBalance + fiData.newPI)) * 100 : 0;
+
+            const piStatus = getStatusBadge(piProgress, piData.targetCompletion);
+            const fiStatus = getStatusBadge(fiProgress, fiData.targetCompletion);
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                            <div>
+                                <h1>📊 Case Management Dashboard</h1>
+                                <p>AI-Powered Performance Analytics & Decision Support System</p>
+                            </div>
+                            <div style={{textAlign: 'right', fontSize: '12px', color: '#4a6741'}}>
+                                {lastSaved && (
+                                    <div>💾 Auto-saved: {lastSaved.toLocaleTimeString()}</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Report Generation Section */}
+                    <div className="chart-container" style={{marginBottom: '30px'}}>
+                        <h2 style={{marginBottom: '20px', color: '#2c3e50'}}>📄 Generate Reports for Management</h2>
+                        <div style={{background: '#f8f9fa', padding: '20px', borderRadius: '12px'}}>
+                            <div style={{marginBottom: '20px'}}>
+                                <label style={{display: 'block', marginBottom: '10px', fontWeight: '600', color: '#2c3e50'}}>
+                                    Report Period (Optional)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g., January 2025, Q4 2024, Week 1-4 December 2024"
+                                    value={reportPeriod}
+                                    onChange={(e) => setReportPeriod(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        border: '2px solid #ecf0f1',
+                                        borderRadius: '8px',
+                                        fontSize: '14px'
+                                    }}
+                                />
+                                <p style={{fontSize: '12px', color: '#7f8c8d', marginTop: '5px'}}>
+                                    Specify the reporting period for your reports (e.g., "January 2025", "Q4 2024")
+                                </p>
+                            </div>
+                            
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '15px'}}>
+                                <div style={{background: 'white', padding: '20px', borderRadius: '10px', border: '2px solid #27ae60'}}>
+                                    <h3 style={{color: '#27ae60', marginBottom: '10px', fontSize: '16px'}}>
+                                        📊 Team Performance Report
+                                    </h3>
+                                    <p style={{fontSize: '13px', color: '#7f8c8d', marginBottom: '15px'}}>
+                                        Comprehensive team overview including all metrics, completion rates, and AI insights
+                                    </p>
+                                    <button 
+                                        className="btn" 
+                                        onClick={generateTeamReport}
+                                        style={{width: '100%', background: 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)'}}
+                                    >
+                                        Generate Team Report
+                                    </button>
+                                </div>
+
+                                <div style={{background: 'white', padding: '20px', borderRadius: '10px', border: '2px solid #3498db'}}>
+                                    <h3 style={{color: '#3498db', marginBottom: '10px', fontSize: '16px'}}>
+                                        👤 Individual Reports
+                                    </h3>
+                                    <p style={{fontSize: '13px', color: '#7f8c8d', marginBottom: '15px'}}>
+                                        Detailed performance reports for each investigator
+                                    </p>
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                                        {teamData.map((investigator, idx) => (
+                                            <button 
+                                                key={idx}
+                                                className="btn" 
+                                                onClick={() => generateIndividualReport(investigator)}
+                                                style={{
+                                                    width: '100%', 
+                                                    background: 'linear-gradient(135deg, #3498db 0%, #5dade2 100%)',
+                                                    padding: '8px 15px',
+                                                    fontSize: '14px'
+                                                }}
+                                            >
+                                                {investigator.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div style={{background: 'white', padding: '20px', borderRadius: '10px', border: '2px solid #f39c12'}}>
+                                    <h3 style={{color: '#f39c12', marginBottom: '10px', fontSize: '16px'}}>
+                                        💾 Data Management
+                                    </h3>
+                                    <p style={{fontSize: '13px', color: '#7f8c8d', marginBottom: '15px'}}>
+                                        Auto-save is active. Your data is automatically saved every 2 seconds after changes.
+                                    </p>
+                                    {lastSaved && (
+                                        <p style={{fontSize: '12px', color: '#27ae60', fontWeight: '600', marginBottom: '15px'}}>
+                                            ✓ Last saved: {lastSaved.toLocaleTimeString()}
+                                        </p>
+                                    )}
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                                        <button 
+                                            className="btn" 
+                                            onClick={manualSave}
+                                            style={{
+                                                width: '100%', 
+                                                background: 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)',
+                                                padding: '10px',
+                                                fontSize: '14px'
+                                            }}
+                                        >
+                                            💾 Save Now
+                                        </button>
+                                        <button 
+                                            className="btn" 
+                                            onClick={clearAllData}
+                                            style={{
+                                                width: '100%', 
+                                                background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+                                                padding: '10px',
+                                                fontSize: '14px'
+                                            }}
+                                        >
+                                            🗑️ Clear All Data
+                                        </button>
+                                    </div>
+                                    <p style={{fontSize: '11px', color: '#7f8c8d', marginTop: '10px', fontStyle: 'italic'}}>
+                                        Data is stored locally in your browser
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Key Metrics Dashboard */}
+                    <div className="stats-grid">
+                        <div className="card">
+                            <div className="card-header">
+                                <span className="card-title">PI Completion Rate</span>
+                                <div className="card-icon green-bg">📋</div>
+                            </div>
+                            <div className="metric-value">{piProgress.toFixed(1)}%</div>
+                            <div className="metric-label">
+                                Target: {piData.targetCompletion}%
+                                <span className={`status-badge ${piStatus.className}`}>{piStatus.text}</span>
+                            </div>
+                            <div className="progress-bar">
+                                <div className="progress-fill" 
+                                     style={{width: `${Math.min(piProgress, 100)}%`, 
+                                            background: 'linear-gradient(90deg, #a8d5ba, #81c784)'}}></div>
+                            </div>
+                            {/* Breakdown */}
+                            <div style={{marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px'}}>
+                                <div style={{background: '#fff4e6', padding: '8px', borderRadius: '6px', textAlign: 'center'}}>
+                                    <div style={{fontSize: '16px', fontWeight: '700', color: '#f39c12'}}>
+                                        {piData.completedPI > 0 ? ((piData.setAside / piData.completedPI) * 100).toFixed(1) : 0}%
+                                    </div>
+                                    <div style={{fontSize: '10px', color: '#7f8c8d', textTransform: 'uppercase'}}>Set Aside</div>
+                                </div>
+                                <div style={{background: '#e8f8f0', padding: '8px', borderRadius: '6px', textAlign: 'center'}}>
+                                    <div style={{fontSize: '16px', fontWeight: '700', color: '#27ae60'}}>
+                                        {piData.completedPI > 0 ? ((piData.piToFI / piData.completedPI) * 100).toFixed(1) : 0}%
+                                    </div>
+                                    <div style={{fontSize: '10px', color: '#7f8c8d', textTransform: 'uppercase'}}>PI to FI</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="card-header">
+                                <span className="card-title">FI Completion Rate</span>
+                                <div className="card-icon lilac-bg">⚖️</div>
+                            </div>
+                            <div className="metric-value">{fiProgress.toFixed(1)}%</div>
+                            <div className="metric-label">
+                                Target: {fiData.targetCompletion}%
+                                <span className={`status-badge ${fiStatus.className}`}>{fiStatus.text}</span>
+                            </div>
+                            <div className="progress-bar">
+                                <div className="progress-fill" 
+                                     style={{width: `${Math.min(fiProgress, 100)}%`, 
+                                            background: 'linear-gradient(90deg, #d4c5e0, #ba68c8)'}}></div>
+                            </div>
+                            {/* Breakdown */}
+                            <div style={{marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px'}}>
+                                <div style={{background: '#e8f8f0', padding: '8px', borderRadius: '6px', textAlign: 'center'}}>
+                                    <div style={{fontSize: '16px', fontWeight: '700', color: '#27ae60'}}>
+                                        {fiData.completedPI > 0 ? ((fiData.prosecution / fiData.completedPI) * 100).toFixed(1) : 0}%
+                                    </div>
+                                    <div style={{fontSize: '10px', color: '#7f8c8d', textTransform: 'uppercase'}}>Prosecution</div>
+                                </div>
+                                <div style={{background: '#ffe5e5', padding: '8px', borderRadius: '6px', textAlign: 'center'}}>
+                                    <div style={{fontSize: '16px', fontWeight: '700', color: '#e74c3c'}}>
+                                        {fiData.completedPI > 0 ? ((fiData.nfa / fiData.completedPI) * 100).toFixed(1) : 0}%
+                                    </div>
+                                    <div style={{fontSize: '10px', color: '#7f8c8d', textTransform: 'uppercase'}}>NFA</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="card-header">
+                                <span className="card-title">Active Caseload</span>
+                                <div className="card-icon blue-bg">📊</div>
+                            </div>
+                            <div className="metric-value">{piData.closingBalance + fiData.closingBalance}</div>
+                            <div className="metric-label">Total Active Cases</div>
+                            <div style={{marginTop: '15px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+                                {/* Active PI */}
+                                <div style={{background: '#e8f8f0', padding: '10px', borderRadius: '8px', textAlign: 'center'}}>
+                                    <div style={{fontSize: '20px', fontWeight: '700', color: '#27ae60'}}>{piData.closingBalance}</div>
+                                    <div style={{fontSize: '11px', color: '#7f8c8d', textTransform: 'uppercase'}}>Active PI</div>
+                                </div>
+                                
+                                {/* Active FI - Combined Card */}
+                                <div style={{background: '#f3e8f8', borderRadius: '8px', overflow: 'hidden'}}>
+                                    {/* Header */}
+                                    <div style={{padding: '8px', background: '#e8d5f4', textAlign: 'center'}}>
+                                        <div style={{fontSize: '20px', fontWeight: '700', color: '#8e44ad'}}>{fiData.closingBalance}</div>
+                                        <div style={{fontSize: '11px', color: '#7f8c8d', textTransform: 'uppercase', fontWeight: '600'}}>Active FI</div>
+                                    </div>
+                                    {/* Split sections */}
+                                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr'}}>
+                                        {/* FI in Team */}
+                                        <div style={{padding: '10px', textAlign: 'center', borderRight: '1px solid #d4c5e0'}}>
+                                            <div style={{fontSize: '18px', fontWeight: '700', color: '#8e44ad'}}>
+                                                {fiData.closingBalance - teamData.reduce((sum, inv) => sum + (inv.fiActiveCasesLD || 0), 0)}
+                                            </div>
+                                            <div style={{fontSize: '10px', color: '#7f8c8d', textTransform: 'uppercase'}}>FI in Team</div>
+                                        </div>
+                                        {/* With LD */}
+                                        <div style={{padding: '10px', textAlign: 'center', background: '#fff4e6'}}>
+                                            <div style={{fontSize: '18px', fontWeight: '700', color: '#e67e22'}}>
+                                                {teamData.reduce((sum, inv) => sum + (inv.fiActiveCasesLD || 0), 0)}
+                                            </div>
+                                            <div style={{fontSize: '10px', color: '#7f8c8d', textTransform: 'uppercase'}}>With LD</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="card-header">
+                                <span className="card-title">Avg. Caseload/Investigator</span>
+                                <div className="card-icon peach-bg">👥</div>
+                            </div>
+                            <div className="metric-value">
+                                {((piData.closingBalance + fiData.closingBalance) / teamData.length).toFixed(1)}
+                            </div>
+                            <div className="metric-label">Cases per person</div>
+                        </div>
+                    </div>
+
+                    {/* AI Insights */}
+                    <div className="ai-insights">
+                        <h2>
+                            <span>🤖</span> AI-Powered Insights
+                        </h2>
+                        {insights.length > 0 ? insights.map((insight, idx) => (
+                            <div key={idx} className={`insight-item ${insight.type}`}>
+                                <div className="insight-type">
+                                    {insight.type === 'alert' && '🚨'}
+                                    {insight.type === 'warning' && '⚠️'}
+                                    {insight.type === 'success' && '✅'}
+                                    {insight.type === 'info' && 'ℹ️'}
+                                    {insight.title}
+                                </div>
+                                <div className="insight-text">{insight.text}</div>
+                            </div>
+                        )) : (
+                            <div className="insight-item info">
+                                <div className="insight-type">ℹ️ Ready for Analysis</div>
+                                <div className="insight-text">Enter your investigation data below to receive AI-powered insights and recommendations.</div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Data Input Section */}
+                    <div className="data-input">
+                        <h2 style={{marginBottom: '10px', color: '#2c3e50'}}>📝 Investigation Data Input</h2>
+                        <div style={{background: '#e3f2fd', padding: '15px', borderRadius: '10px', marginBottom: '20px', border: '2px solid #3498db'}}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                <span style={{fontSize: '24px'}}>ℹ️</span>
+                                <div>
+                                    <div style={{fontWeight: '600', color: '#2c3e50', marginBottom: '5px'}}>Team Overview - Auto-Calculated</div>
+                                    <div style={{fontSize: '14px', color: '#555'}}>
+                                        All team overview metrics below are automatically calculated from individual investigator data. 
+                                        To update team totals, enter data in the "Team Performance - Individual Tracking" section below.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 style={{color: '#27ae60', marginBottom: '15px'}}>Preliminary Investigation (PI)</h3>
+                        <div className="input-grid">
+                            <div className="input-group">
+                                <label>Opening Balance (Auto-calculated from Team)</label>
+                                <input type="number" value={piData.openingBalance} readOnly
+                                       style={{background: '#d5f4e6', cursor: 'not-allowed', fontWeight: '600', color: '#0f7d47'}} />
+                            </div>
+                            <div className="input-group">
+                                <label>New PI (Auto-calculated from Team)</label>
+                                <input type="number" value={piData.newPI} readOnly
+                                       style={{background: '#d5f4e6', cursor: 'not-allowed', fontWeight: '600', color: '#0f7d47'}} />
+                            </div>
+                        </div>
+                        
+                        {/* PI Completion Breakdown */}
+                        <div style={{marginTop: '15px', padding: '15px', background: '#e8f8f0', borderRadius: '10px', border: '1px solid #a8d5ba'}}>
+                            <div style={{fontSize: '14px', fontWeight: '600', color: '#27ae60', marginBottom: '12px'}}>
+                                PI Completion Breakdown (Auto-calculated from Team):
+                            </div>
+                            <div className="input-grid">
+                                <div className="input-group">
+                                    <label>Set Aside</label>
+                                    <input type="number" value={piData.setAside} readOnly
+                                           style={{background: '#d5f4e6', cursor: 'not-allowed', fontWeight: '600', color: '#0f7d47'}} />
+                                </div>
+                                <div className="input-group">
+                                    <label>PI to FI</label>
+                                    <input type="number" value={piData.piToFI} readOnly
+                                           style={{background: '#d5f4e6', cursor: 'not-allowed', fontWeight: '600', color: '#0f7d47'}} />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="input-grid" style={{marginTop: '12px'}}>
+                            <div className="input-group">
+                                <label>Completed PI (Auto-calculated)</label>
+                                <input type="number" value={piData.completedPI} readOnly
+                                       style={{background: '#d5f4e6', cursor: 'not-allowed', fontWeight: '600', color: '#0f7d47'}} />
+                            </div>
+                            <div className="input-group">
+                                <label>Target Completion (%)</label>
+                                <input type="number" value={piData.targetCompletion} 
+                                       onChange={(e) => handlePIChange('targetCompletion', e.target.value)} />
+                            </div>
+                        </div>
+
+                        <h3 style={{color: '#8e44ad', marginTop: '30px', marginBottom: '15px'}}>Further Investigation (FI)</h3>
+                        <div className="input-grid">
+                            <div className="input-group">
+                                <label>Opening Balance (Auto-calculated from Team)</label>
+                                <input type="number" value={fiData.openingBalance} readOnly
+                                       style={{background: '#e8d5f4', cursor: 'not-allowed', fontWeight: '600', color: '#6d28d9'}} />
+                            </div>
+                            <div className="input-group">
+                                <label>New FI (Auto-calculated from Team)</label>
+                                <input type="number" value={fiData.newPI} readOnly
+                                       style={{background: '#e8d5f4', cursor: 'not-allowed', fontWeight: '600', color: '#6d28d9'}} />
+                            </div>
+                        </div>
+                        
+                        {/* FI Completion Breakdown */}
+                        <div style={{marginTop: '15px', padding: '15px', background: '#f3e8f8', borderRadius: '10px', border: '1px solid #d4c5e0'}}>
+                            <div style={{fontSize: '14px', fontWeight: '600', color: '#8e44ad', marginBottom: '12px'}}>
+                                FI Completion Breakdown (Auto-calculated from Team):
+                            </div>
+                            <div className="input-grid">
+                                <div className="input-group">
+                                    <label>Prosecution</label>
+                                    <input type="number" value={fiData.prosecution} readOnly
+                                           style={{background: '#e8d5f4', cursor: 'not-allowed', fontWeight: '600', color: '#6d28d9'}} />
+                                </div>
+                                <div className="input-group">
+                                    <label>No Further Action</label>
+                                    <input type="number" value={fiData.nfa} readOnly
+                                           style={{background: '#e8d5f4', cursor: 'not-allowed', fontWeight: '600', color: '#6d28d9'}} />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="input-grid" style={{marginTop: '12px'}}>
+                            <div className="input-group">
+                                <label>Completed FI (Auto-calculated)</label>
+                                <input type="number" value={fiData.completedPI} readOnly
+                                       style={{background: '#e8d5f4', cursor: 'not-allowed', fontWeight: '600', color: '#6d28d9'}} />
+                            </div>
+                            <div className="input-group">
+                                <label>Target Completion (%)</label>
+                                <input type="number" value={fiData.targetCompletion} 
+                                       onChange={(e) => handleFIChange('targetCompletion', e.target.value)} />
+                            </div>
+                        </div>
+
+                        <h3 style={{color: '#e67e22', marginTop: '30px', marginBottom: '15px'}}>Team Performance - Individual Tracking</h3>
+                        
+                        <div style={{marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                            <div>
+                                <p style={{color: '#7f8c8d', fontSize: '14px'}}>
+                                    Manage your team members. Add new investigators or remove existing ones.
+                                </p>
+                            </div>
+                            <button 
+                                className="btn" 
+                                onClick={addInvestigator}
+                                style={{
+                                    background: 'linear-gradient(135deg, #3498db 0%, #2ecc71 100%)',
+                                    padding: '12px 25px',
+                                    fontSize: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                }}
+                            >
+                                ➕ Add Investigator
+                            </button>
+                        </div>
+
+                        {teamData.map((investigator, idx) => (
+                            <div key={idx} style={{marginBottom: '25px', background: '#f8f9fa', padding: '20px', borderRadius: '12px', position: 'relative'}}>
+                                <div style={{marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                    <div className="input-group" style={{flex: 1, marginRight: '15px'}}>
+                                        <label style={{fontSize: '16px', fontWeight: '600', color: '#2c3e50'}}>Investigator Name</label>
+                                        <input type="text" value={investigator.name} 
+                                               onChange={(e) => handleTeamChange(idx, 'name', e.target.value)}
+                                               style={{fontSize: '16px', fontWeight: '600'}} />
+                                    </div>
+                                    <button
+                                        onClick={() => removeInvestigator(idx)}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '10px 20px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s ease',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            marginTop: '20px'
+                                        }}
+                                        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                                        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+                                    >
+                                        🗑️ Remove
+                                    </button>
+                                </div>
+                                
+                                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
+                                    {/* PI Section */}
+                                    <div style={{background: 'white', padding: '15px', borderRadius: '10px', border: '2px solid #a8d5ba'}}>
+                                        <h4 style={{color: '#27ae60', marginBottom: '15px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                                            📋 Preliminary Investigation (PI)
+                                        </h4>
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                                            <div className="input-group">
+                                                <label>Opening Balance</label>
+                                                <input type="number" value={investigator.piOpeningBalance} 
+                                                       onChange={(e) => handleTeamChange(idx, 'piOpeningBalance', e.target.value)} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>New PI Cases</label>
+                                                <input type="number" value={investigator.piNewCases} 
+                                                       onChange={(e) => handleTeamChange(idx, 'piNewCases', e.target.value)} />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Total Investigated */}
+                                        <div style={{marginTop: '12px', padding: '10px', background: '#d5f4e6', borderRadius: '8px', border: '1px solid #a8d5ba'}}>
+                                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                                <span style={{fontSize: '13px', fontWeight: '600', color: '#0f7d47'}}>Total PI Investigated</span>
+                                                <span style={{fontSize: '20px', fontWeight: '700', color: '#27ae60'}}>{investigator.piTotalInvestigated}</span>
+                                            </div>
+                                            <div style={{fontSize: '11px', color: '#0f7d47', marginTop: '3px'}}>
+                                                (Opening + New)
+                                            </div>
+                                        </div>
+                                        
+                                        {/* PI Completion Breakdown */}
+                                        <div style={{marginTop: '15px', padding: '12px', background: '#e8f8f0', borderRadius: '8px'}}>
+                                            <div style={{fontSize: '12px', fontWeight: '600', color: '#27ae60', marginBottom: '10px'}}>
+                                                PI Completion Breakdown:
+                                            </div>
+                                            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+                                                <div className="input-group">
+                                                    <label style={{fontSize: '12px'}}>Set Aside</label>
+                                                    <input type="number" value={investigator.piSetAside} 
+                                                           onChange={(e) => handleTeamChange(idx, 'piSetAside', e.target.value)} />
+                                                </div>
+                                                <div className="input-group">
+                                                    <label style={{fontSize: '12px'}}>PI to FI</label>
+                                                    <input type="number" value={investigator.piToFI} 
+                                                           onChange={(e) => handleTeamChange(idx, 'piToFI', e.target.value)} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px'}}>
+                                            <div className="input-group">
+                                                <label>Total PI Completed</label>
+                                                <input type="number" value={investigator.piCompleted} readOnly 
+                                                       style={{background: '#d5f4e6', cursor: 'not-allowed', fontWeight: '600', color: '#0f7d47'}} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>PI Closing Balance</label>
+                                                <input type="number" value={investigator.piClosingBalance} readOnly 
+                                                       style={{background: '#e8f8f0', cursor: 'not-allowed', fontWeight: '600', color: '#27ae60'}} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* FI Section */}
+                                    <div style={{background: 'white', padding: '15px', borderRadius: '10px', border: '2px solid #d4c5e0'}}>
+                                        <h4 style={{color: '#8e44ad', marginBottom: '15px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                                            ⚖️ Further Investigation (FI)
+                                        </h4>
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                                            <div className="input-group">
+                                                <label>Opening Balance</label>
+                                                <input type="number" value={investigator.fiOpeningBalance} 
+                                                       onChange={(e) => handleTeamChange(idx, 'fiOpeningBalance', e.target.value)} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>New FI Cases</label>
+                                                <input type="number" value={investigator.fiNewCases} 
+                                                       onChange={(e) => handleTeamChange(idx, 'fiNewCases', e.target.value)} />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Total Investigated */}
+                                        <div style={{marginTop: '12px', padding: '10px', background: '#e8d5f4', borderRadius: '8px', border: '1px solid #d4c5e0'}}>
+                                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                                <span style={{fontSize: '13px', fontWeight: '600', color: '#6d28d9'}}>Total FI Investigated</span>
+                                                <span style={{fontSize: '20px', fontWeight: '700', color: '#8e44ad'}}>{investigator.fiTotalInvestigated}</span>
+                                            </div>
+                                            <div style={{fontSize: '11px', color: '#6d28d9', marginTop: '3px'}}>
+                                                (Opening + New)
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Active Cases with LD */}
+                                        <div style={{marginTop: '12px'}}>
+                                            <div className="input-group">
+                                                <label style={{color: '#e67e22', fontWeight: '600'}}>Active Cases with LD</label>
+                                                <input type="number" value={investigator.fiActiveCasesLD} 
+                                                       onChange={(e) => handleTeamChange(idx, 'fiActiveCasesLD', e.target.value)}
+                                                       style={{borderColor: '#e67e22', borderWidth: '2px'}} />
+                                            </div>
+                                            <div style={{fontSize: '11px', color: '#7f8c8d', marginTop: '3px', fontStyle: 'italic'}}>
+                                                Cases with Legal Department (reduces active FI count)
+                                            </div>
+                                        </div>
+                                        
+                                        {/* FI Completion Breakdown */}
+                                        <div style={{marginTop: '15px', padding: '12px', background: '#f3e8f8', borderRadius: '8px'}}>
+                                            <div style={{fontSize: '12px', fontWeight: '600', color: '#8e44ad', marginBottom: '10px'}}>
+                                                FI Completion Breakdown:
+                                            </div>
+                                            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+                                                <div className="input-group">
+                                                    <label style={{fontSize: '12px'}}>Prosecution</label>
+                                                    <input type="number" value={investigator.fiProsecution} 
+                                                           onChange={(e) => handleTeamChange(idx, 'fiProsecution', e.target.value)} />
+                                                </div>
+                                                <div className="input-group">
+                                                    <label style={{fontSize: '12px'}}>No Further Action</label>
+                                                    <input type="number" value={investigator.fiNFA} 
+                                                           onChange={(e) => handleTeamChange(idx, 'fiNFA', e.target.value)} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px'}}>
+                                            <div className="input-group">
+                                                <label>Total FI Completed</label>
+                                                <input type="number" value={investigator.fiCompleted} readOnly 
+                                                       style={{background: '#e8d5f4', cursor: 'not-allowed', fontWeight: '600', color: '#6d28d9'}} />
+                                            </div>
+                                            <div className="input-group">
+                                                <label>FI Closing Balance</label>
+                                                <input type="number" value={investigator.fiClosingBalance} readOnly 
+                                                       style={{background: '#f3e8f8', cursor: 'not-allowed', fontWeight: '600', color: '#8e44ad'}} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Summary Row */}
+                                <div style={{marginTop: '15px', padding: '12px', background: 'white', borderRadius: '8px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px', border: '2px solid #3498db'}}>
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: '24px', fontWeight: '700', color: '#3498db'}}>{investigator.totalCaseload}</div>
+                                        <div style={{fontSize: '12px', color: '#7f8c8d', textTransform: 'uppercase'}}>Active Caseload</div>
+                                    </div>
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: '20px', fontWeight: '600', color: '#27ae60'}}>
+                                            {investigator.piTotalInvestigated}
+                                        </div>
+                                        <div style={{fontSize: '11px', color: '#7f8c8d', textTransform: 'uppercase'}}>Total PI Investigated</div>
+                                    </div>
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: '20px', fontWeight: '600', color: '#8e44ad'}}>
+                                            {investigator.fiTotalInvestigated}
+                                        </div>
+                                        <div style={{fontSize: '11px', color: '#7f8c8d', textTransform: 'uppercase'}}>Total FI Investigated</div>
+                                    </div>
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: '20px', fontWeight: '600', color: '#27ae60'}}>
+                                            {investigator.piSetAside} / {investigator.piToFI}
+                                        </div>
+                                        <div style={{fontSize: '11px', color: '#7f8c8d', textTransform: 'uppercase'}}>Set Aside / PI→FI</div>
+                                    </div>
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: '20px', fontWeight: '600', color: '#8e44ad'}}>
+                                            {investigator.fiProsecution} / {investigator.fiNFA}
+                                        </div>
+                                        <div style={{fontSize: '11px', color: '#7f8c8d', textTransform: 'uppercase'}}>Prosecution / NFA</div>
+                                    </div>
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: '24px', fontWeight: '700', color: '#e67e22'}}>{investigator.efficiency.toFixed(0)}%</div>
+                                        <div style={{fontSize: '12px', color: '#7f8c8d', textTransform: 'uppercase'}}>Efficiency</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Chart */}
+                    <div className="chart-container">
+                        <h2 style={{marginBottom: '20px', color: '#2c3e50'}}>📈 Case Flow Visualization</h2>
+                        <div style={{height: '350px'}}>
+                            <canvas ref={chartRef}></canvas>
+                        </div>
+                    </div>
+
+                    {/* Team Performance Cards */}
+                    <div className="chart-container">
+                        <h2 style={{marginBottom: '20px', color: '#2c3e50'}}>👥 Individual Performance Overview</h2>
+                        <div className="team-performance">
+                            {teamData.map((investigator, idx) => (
+                                <div key={idx} className="investigator-card">
+                                    <div className="investigator-name">{investigator.name}</div>
+                                    
+                                    {/* PI Section */}
+                                    <div style={{marginBottom: '12px', padding: '12px', background: '#e8f8f0', borderRadius: '8px', border: '1px solid #a8d5ba'}}>
+                                        <div style={{fontSize: '11px', fontWeight: '600', color: '#27ae60', marginBottom: '8px', textTransform: 'uppercase'}}>
+                                            📋 Preliminary Investigation
+                                        </div>
+                                        <div style={{marginBottom: '8px', padding: '8px', background: '#d5f4e6', borderRadius: '6px'}}>
+                                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                                <span style={{fontSize: '12px', fontWeight: '600', color: '#0f7d47'}}>Total Investigated:</span>
+                                                <span style={{fontSize: '16px', fontWeight: '700', color: '#27ae60'}}>{investigator.piTotalInvestigated}</span>
+                                            </div>
+                                        </div>
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px'}}>
+                                            <div>
+                                                <span style={{color: '#7f8c8d'}}>Opening:</span>
+                                                <strong style={{marginLeft: '5px'}}>{investigator.piOpeningBalance}</strong>
+                                            </div>
+                                            <div>
+                                                <span style={{color: '#7f8c8d'}}>New:</span>
+                                                <strong style={{marginLeft: '5px', color: '#3498db'}}>+{investigator.piNewCases}</strong>
+                                            </div>
+                                        </div>
+                                        <div style={{marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #c5e1a5'}}>
+                                            <div style={{fontSize: '11px', color: '#27ae60', fontWeight: '600', marginBottom: '5px'}}>Completed:</div>
+                                            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px'}}>
+                                                <div style={{background: 'white', padding: '4px 8px', borderRadius: '4px'}}>
+                                                    <span style={{color: '#7f8c8d'}}>Set Aside:</span>
+                                                    <strong style={{marginLeft: '3px', color: '#f39c12'}}>{investigator.piSetAside}</strong>
+                                                </div>
+                                                <div style={{background: 'white', padding: '4px 8px', borderRadius: '4px'}}>
+                                                    <span style={{color: '#7f8c8d'}}>PI→FI:</span>
+                                                    <strong style={{marginLeft: '3px', color: '#27ae60'}}>{investigator.piToFI}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style={{marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #c5e1a5', display: 'flex', justifyContent: 'space-between'}}>
+                                            <span style={{fontSize: '11px', color: '#7f8c8d'}}>Total Completed:</span>
+                                            <strong style={{color: '#27ae60'}}>{investigator.piCompleted}</strong>
+                                        </div>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '4px'}}>
+                                            <span style={{color: '#27ae60', fontWeight: '600', fontSize: '11px'}}>Closing:</span>
+                                            <strong style={{fontSize: '14px', color: '#27ae60'}}>{investigator.piClosingBalance}</strong>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* FI Section */}
+                                    <div style={{marginBottom: '12px', padding: '12px', background: '#f3e8f8', borderRadius: '8px', border: '1px solid #d4c5e0'}}>
+                                        <div style={{fontSize: '11px', fontWeight: '600', color: '#8e44ad', marginBottom: '8px', textTransform: 'uppercase'}}>
+                                            ⚖️ Further Investigation
+                                        </div>
+                                        <div style={{marginBottom: '8px', padding: '8px', background: '#e8d5f4', borderRadius: '6px'}}>
+                                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                                <span style={{fontSize: '12px', fontWeight: '600', color: '#6d28d9'}}>Total Investigated:</span>
+                                                <span style={{fontSize: '16px', fontWeight: '700', color: '#8e44ad'}}>{investigator.fiTotalInvestigated}</span>
+                                            </div>
+                                        </div>
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px'}}>
+                                            <div>
+                                                <span style={{color: '#7f8c8d'}}>Opening:</span>
+                                                <strong style={{marginLeft: '5px'}}>{investigator.fiOpeningBalance}</strong>
+                                            </div>
+                                            <div>
+                                                <span style={{color: '#7f8c8d'}}>New:</span>
+                                                <strong style={{marginLeft: '5px', color: '#3498db'}}>+{investigator.fiNewCases}</strong>
+                                            </div>
+                                        </div>
+                                        {investigator.fiActiveCasesLD > 0 && (
+                                            <div style={{marginTop: '8px', padding: '6px', background: '#fff4e6', borderRadius: '4px', border: '1px solid #e67e22'}}>
+                                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                                    <span style={{fontSize: '11px', fontWeight: '600', color: '#e67e22'}}>With LD:</span>
+                                                    <strong style={{fontSize: '14px', color: '#e67e22'}}>{investigator.fiActiveCasesLD}</strong>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div style={{marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #ce93d8'}}>
+                                            <div style={{fontSize: '11px', color: '#8e44ad', fontWeight: '600', marginBottom: '5px'}}>Completed:</div>
+                                            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px'}}>
+                                                <div style={{background: 'white', padding: '4px 8px', borderRadius: '4px'}}>
+                                                    <span style={{color: '#7f8c8d'}}>Prosecution:</span>
+                                                    <strong style={{marginLeft: '3px', color: '#27ae60'}}>{investigator.fiProsecution}</strong>
+                                                </div>
+                                                <div style={{background: 'white', padding: '4px 8px', borderRadius: '4px'}}>
+                                                    <span style={{color: '#7f8c8d'}}>NFA:</span>
+                                                    <strong style={{marginLeft: '3px', color: '#e74c3c'}}>{investigator.fiNFA}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style={{marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #ce93d8', display: 'flex', justifyContent: 'space-between'}}>
+                                            <span style={{fontSize: '11px', color: '#7f8c8d'}}>Total Completed:</span>
+                                            <strong style={{color: '#8e44ad'}}>{investigator.fiCompleted}</strong>
+                                        </div>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '4px'}}>
+                                            <span style={{color: '#8e44ad', fontWeight: '600', fontSize: '11px'}}>Closing:</span>
+                                            <strong style={{fontSize: '14px', color: '#8e44ad'}}>{investigator.fiClosingBalance}</strong>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Active Caseload */}
+                                    <div style={{marginBottom: '12px', padding: '10px', background: '#e3f2fd', borderRadius: '8px', border: '2px solid #3498db'}}>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                            <span style={{fontSize: '12px', fontWeight: '600', color: '#2c3e50'}}>Active Caseload:</span>
+                                            <strong style={{
+                                                fontSize: '20px', 
+                                                color: investigator.totalCaseload > 20 ? '#e74c3c' : investigator.totalCaseload > 15 ? '#f39c12' : '#27ae60'
+                                            }}>
+                                                {investigator.totalCaseload}
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="investigator-stats">
+                                        <div className="stat-small">
+                                            <div className="value">{investigator.piCompleted}</div>
+                                            <div className="label">PI Done</div>
+                                        </div>
+                                        <div className="stat-small">
+                                            <div className="value">{investigator.fiCompleted}</div>
+                                            <div className="label">FI Done</div>
+                                        </div>
+                                        <div className="stat-small">
+                                            <div className="value">{investigator.efficiency.toFixed(0)}%</div>
+                                            <div className="label">Score</div>
+                                        </div>
+                                    </div>
+                                    <div className="progress-bar">
+                                        <div className="progress-fill" 
+                                             style={{width: `${Math.min(investigator.efficiency, 100)}%`, 
+                                                    background: 'linear-gradient(90deg, #3498db, #2ecc71)'}}></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* AI Chat Assistant */}
+                    <div className="ai-chat">
+                        <h2 style={{marginBottom: '20px', color: '#2c3e50'}}>💬 AI Investigation Assistant</h2>
+                        <div className="chat-messages">
+                            {chatMessages.length === 0 ? (
+                                <div style={{textAlign: 'center', color: '#7f8c8d', padding: '40px'}}>
+                                    <p>👋 Hello! I'm your AI investigation assistant.</p>
+                                    <p style={{marginTop: '10px'}}>Ask me about performance trends, recommendations, or risk assessments.</p>
+                                </div>
+                            ) : (
+                                chatMessages.map((msg, idx) => (
+                                    <div key={idx} className={`message ${msg.type}-message`}>
+                                        {msg.text}
+                                    </div>
+                                ))
+                            )}
+                            {isAnalyzing && (
+                                <div className="message ai-message">
+                                    <div className="loading"></div> Analyzing data...
+                                </div>
+                            )}
+                        </div>
+                        <div className="chat-input">
+                            <input 
+                                type="text" 
+                                placeholder="Ask me anything about your investigation performance..."
+                                value={chatInput}
+                                onChange={(e) => setChatInput(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleChat()}
+                            />
+                            <button className="btn" onClick={handleChat}>Send</button>
+                        </div>
+                    </div>
+
+                    <div style={{marginTop: '30px', padding: '20px', background: 'white', borderRadius: '15px', textAlign: 'center'}}>
+                        <p style={{color: '#7f8c8d', fontSize: '14px'}}>
+                            Case Management Dashboard v1.0 | Powered by AI Analytics
+                        </p>
+                        <p style={{color: '#95a5a6', fontSize: '12px', marginTop: '5px'}}>
+                            Financial Crimes Investigation Unit - Mauritius
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<FCCIUDashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>
